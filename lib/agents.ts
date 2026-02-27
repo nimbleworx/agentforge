@@ -33,7 +33,7 @@ export function buildAgentPayload(
     system_prompt: '',
   }
 
-  const system_prompt = buildSystemPrompt(agentShell as any, data.businessName)
+  const system_prompt = buildSystemPrompt(agentShell as any, data)
 
   return { ...agentShell, system_prompt }
 }
