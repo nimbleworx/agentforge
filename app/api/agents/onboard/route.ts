@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     const body: OnboardingData = await request.json()
 
-    // 1. Save profile
+    // 1. Save full profile including identity fields
     const { error: profileError } = await supabase
       .from('profiles')
       .update({
@@ -24,6 +24,14 @@ export async function POST(request: Request) {
         tone: body.tone,
         goals: body.goals,
         integrations: body.integrations,
+        mission: body.mission,
+        vision: body.vision,
+        values_statement: body.valuesStatement,
+        ethics_statement: body.ethicsStatement,
+        products: body.products,
+        brand_voice: body.brandVoice,
+        brand_keywords: body.brandKeywords,
+        brand_avoid: body.brandAvoid,
         onboarding_complete: true,
         updated_at: new Date().toISOString(),
       })
@@ -34,7 +42,7 @@ export async function POST(request: Request) {
     // 2. Determine which agents to create
     const roleIds = getAgentsForGoals(body.goals)
 
-    // 3. Build and insert agents
+    // 3. Build and insert agents with identity-aware prompts
     const agentPayloads = roleIds.map(roleId =>
       buildAgentPayload(roleId, body, user.id)
     )
