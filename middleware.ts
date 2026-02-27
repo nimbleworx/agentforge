@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
@@ -24,16 +24,13 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  // Public routes — always accessible
   const publicPaths = ['/', '/login', '/api/auth']
   if (publicPaths.some(p => path.startsWith(p))) return supabaseResponse
 
-  // Protected routes — must be logged in
   if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Dashboard — must have completed onboarding
   if (path.startsWith('/dashboard')) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -46,7 +43,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Onboarding — if already done, go to dashboard
   if (path.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
