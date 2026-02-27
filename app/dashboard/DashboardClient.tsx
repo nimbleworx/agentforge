@@ -74,7 +74,7 @@ function AgentChat({ agent, profile }: { agent: Agent; profile: Profile }) {
         }}>{agent.icon}</div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{agent.name}</div>
-          <div style={{ fontSize: 10, color: '#555' }}>{agent.role} · online</div>
+          <div style={{ fontSize: 10, color: '#aaa' }}>{agent.role} · online</div>
         </div>
         <div style={{ marginLeft: 'auto', width: 7, height: 7, borderRadius: '50%', background: '#34D399', boxShadow: '0 0 6px #34D399' }} />
       </div>
@@ -157,10 +157,10 @@ export default function DashboardClient({ profile, agents }: { profile: Profile;
       }}>
         <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2, color: '#E8FF6B' }}>◈ AGENTFORGE</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ fontSize: 13, color: '#555' }}>{profile.business_name}</div>
+          <div style={{ fontSize: 13, color: '#aaa' }}>{profile.business_name}</div>
           <button onClick={signOut} style={{
             background: 'none', border: '1px solid rgba(255,255,255,0.08)',
-            color: '#555', padding: '6px 14px', borderRadius: 8,
+            color: '#aaa', padding: '6px 14px', borderRadius: 8,
             cursor: 'pointer', fontSize: 12,
           }}>Sign out</button>
         </div>
@@ -181,7 +181,7 @@ export default function DashboardClient({ profile, agents }: { profile: Profile;
           <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 6, letterSpacing: -0.5 }}>
             Welcome, {profile.business_name}
           </h1>
-          <p style={{ color: '#555', fontSize: 14 }}>
+          <p style={{ color: '#aaa', fontSize: 14 }}>
             {agents.length} AI agent{agents.length !== 1 ? 's' : ''} ready to work. Click any agent below to start chatting.
           </p>
         </div>
@@ -198,14 +198,14 @@ export default function DashboardClient({ profile, agents }: { profile: Profile;
               borderRadius: 14, padding: '18px 20px',
             }}>
               <div style={{ fontSize: 24, fontWeight: 900, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: '#444', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: '#aaa', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Agents */}
         <div className="fade-up" style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 11, color: '#444', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16, fontWeight: 700 }}>
+          <div style={{ fontSize: 11, color: '#aaa', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16, fontWeight: 700 }}>
             Your AI Agents
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: agents.length === 1 ? '1fr' : 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
@@ -250,7 +250,7 @@ export default function DashboardClient({ profile, agents }: { profile: Profile;
           {/* Live chat */}
           {activeChat && (
             <div className="fade-up">
-              <div style={{ fontSize: 11, color: '#444', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12, fontWeight: 700 }}>
+              <div style={{ fontSize: 11, color: '#aaa', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12, fontWeight: 700 }}>
                 Live Chat · {activeChat.name}
               </div>
               <AgentChat agent={activeChat} profile={profile} />
@@ -265,7 +265,7 @@ export default function DashboardClient({ profile, agents }: { profile: Profile;
           padding: '22px 26px',
         }}>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>What&apos;s next?</div>
-          <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7 }}>
+          <div style={{ fontSize: 13, color: '#aaa', lineHeight: 1.7 }}>
             Your agents are running. As your business grows you can add more agents,
             connect integrations, and enable governance controls (ethics & culture review)
             from your settings.
