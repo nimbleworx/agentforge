@@ -242,7 +242,7 @@ export default function DashboardClient({ profile, agents }: { profile: Profile;
                     {activeChat?.id === agent.id ? 'Close ↑' : 'Chat →'}
                   </span>
                 </div>
-                <div style={{ fontSize: 12, color: '#666', lineHeight: 1.6 }}>{agent.description}</div>
+                <div style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>{agent.description}</div>
               </div>
             ))}
           </div>
