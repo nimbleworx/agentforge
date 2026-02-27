@@ -15,6 +15,15 @@ export interface Profile {
   integrations: string[]
   onboarding_complete: boolean
   created_at: string
+  // Identity fields
+  mission: string | null
+  vision: string | null
+  values_statement: string | null
+  ethics_statement: string | null
+  products: string | null
+  brand_voice: string | null
+  brand_keywords: string[]
+  brand_avoid: string[]
 }
 
 export interface Agent {
@@ -40,22 +49,34 @@ export interface Message {
 }
 
 export interface OnboardingData {
+  // Identity (step 0)
+  mission: string
+  vision: string
+  valuesStatement: string
+  ethicsStatement: string
+  products: string
+  brandVoice: string
+  brandKeywords: string[]
+  brandAvoid: string[]
+  // Basics (step 1)
   businessName: string
   businessType: BusinessType | ''
   stage: BusinessStage | ''
+  // Goals (step 2)
   goals: string[]
+  // Tone (step 3)
   tone: AgentTone | ''
+  // Integrations (step 4)
   integrations: string[]
 }
 
-// Agent role definitions used across the app
 export const AGENT_ROLES: Record<string, {
   id: AgentRole
   name: string
   icon: string
   color: string
   description: string
-  goals: string[]  // which onboarding goals trigger this agent
+  goals: string[]
 }> = {
   support: {
     id: 'support',
