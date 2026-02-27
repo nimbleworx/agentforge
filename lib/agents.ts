@@ -1,7 +1,6 @@
 import { OnboardingData, AGENT_ROLES, AgentRole } from '@/types'
 import { buildSystemPrompt } from './prompts'
 
-// Given goals selected during onboarding, return which unique agent roles to create
 export function getAgentsForGoals(goals: string[]): AgentRole[] {
   const roles = new Set<AgentRole>()
   for (const goal of goals) {
@@ -14,7 +13,6 @@ export function getAgentsForGoals(goals: string[]): AgentRole[] {
   return Array.from(roles)
 }
 
-// Build the full agent insert payload from onboarding data
 export function buildAgentPayload(
   roleId: AgentRole,
   data: OnboardingData,
@@ -24,7 +22,6 @@ export function buildAgentPayload(
   const tone = (data.tone || 'professional') as any
 
   const agentShell = {
-    id: roleConfig.id,
     user_id: userId,
     name: roleConfig.name,
     role: roleConfig.id,
@@ -36,7 +33,6 @@ export function buildAgentPayload(
     system_prompt: '',
   }
 
-  // Build system prompt using the full agent + business name
   const system_prompt = buildSystemPrompt(agentShell as any, data.businessName)
 
   return { ...agentShell, system_prompt }
