@@ -1,6 +1,6 @@
 # AgentForge — Baseline Document
-**Version:** 1.0 — MVP  
-**Date:** February 2026  
+**Version:** 1.1 — MVP Stable  
+**Date:** March 2026  
 **Status:** Live at https://agentforge-swart.vercel.app  
 **Repository:** github.com/[your-username]/agentforge
 
@@ -24,7 +24,8 @@ To become the operating system for AI-powered small businesses — where every f
 
 ### ✅ Authentication
 - Email + password signup and signin via Supabase Auth
-- Email confirmation flow (currently using Resend SMTP via `onboarding@resend.dev`)
+- Email confirmation flow — currently using Supabase's built-in email sender (3/hour limit, sufficient for testing)
+- Resend SMTP configured but disabled due to a Supabase `unexpected_failure` bug with certain API key formats — to be resolved with a custom email webhook in Phase 2
 - Session management via `@supabase/ssr` cookies
 - Middleware route protection — unauthenticated users redirected to `/login`
 - Post-confirmation redirect to `/onboarding` or `/dashboard` based on onboarding status
@@ -41,7 +42,7 @@ A guided questionnaire that collects everything needed to build the agent system
 | 4 | Integrations | 8 options (email, Slack, Calendar, CRM, Shopify, Stripe, Notion, Not yet) | Optional |
 
 On completion, calls `POST /api/agents/onboard` which:
-1. Saves all profile fields to Supabase
+1. Saves all profile fields to Supabase including all identity fields
 2. Creates agent records with identity-aware system prompts
 
 ### ✅ Agent System
@@ -85,9 +86,9 @@ Worker Agent → SAGE (Ethics) → EMBER (Culture) → User
 - Off-brand tone, robotic responses, cultural insensitivity
 
 **Max attempts:** 3 per response  
-**On deadlock:** Human queue message delivered, team notified
-
-Pipeline status is shown visually in the chat UI under each response (GOVERNANCE ON/OFF toggle).
+**On deadlock:** Human queue message delivered, team notified  
+**Reviewer prompts:** Built inline in `chat/route.ts` using live profile data — lenient by default, only rejecting clear violations  
+**Pipeline status:** Shown visually in chat UI under each response (GOVERNANCE ON/OFF toggle per chat)
 
 ### ✅ Dashboard — Three Tabs
 
@@ -95,7 +96,8 @@ Pipeline status is shown visually in the chat UI under each response (GOVERNANCE
 - Welcome hero card with live status
 - Stats: Agents Active, Brand Tone, Governance status
 - Agent cards — click to open live chat
-- Live chat with SAGE/EMBER pipeline badges
+- Live chat with SAGE/EMBER pipeline badges showing pass/rework/attempts
+- Governance ON/OFF toggle per chat session
 - What's next card
 
 **Org Chart tab**
@@ -125,7 +127,7 @@ Pipeline status is shown visually in the chat UI under each response (GOVERNANCE
 | Auth | Supabase Auth |
 | AI | Anthropic Claude (claude-sonnet-4-20250514) |
 | Hosting | Vercel (serverless) |
-| Email | Resend SMTP (`onboarding@resend.dev`) |
+| Email | Supabase built-in (testing) — Resend webhook planned for production |
 | Styling | Inline styles (no CSS framework) |
 
 ### Environment Variables
@@ -162,9 +164,9 @@ Pipeline status is shown visually in the chat UI under each response (GOVERNANCE
 │   │   ├── client.ts                 # Browser Supabase client
 │   │   └── server.ts                 # Server Supabase client
 │   ├── agents.ts                     # Goal → agent role mapping + agent payload builder
-│   └── prompts.ts                    # System prompt builder + SAGE/EMBER prompt builders
+│   └── prompts.ts                    # System prompt builder (note: SAGE/EMBER prompts now built inline in chat/route.ts)
 ├── types/
-│   └── index.ts                      # All shared TypeScript types
+│   └── index.ts                      # All shared TypeScript types including identity fields
 ├── middleware.ts                     # Route protection + onboarding redirect logic
 ├── supabase-schema.sql               # Full DB schema (run once in Supabase SQL editor)
 ├── BASELINE.md                       # This document
@@ -202,19 +204,17 @@ id, conversation_id, role (user|assistant), content, created_at
 
 ---
 
-## Known Limitations at This Baseline
+## Known Limitations at v1.1
 
 | Issue | Detail | Priority |
 |---|---|---|
-| SMTP email | Resend free tier using shared `onboarding@resend.dev` address — can hit 100/day limit | Medium |
-| No domain verified | Confirmation emails come from Resend shared domain, not the business domain | Low |
-| Identity not editable | Users who completed onboarding can't edit their identity fields without a new account | Medium |
+| Email rate limit | Supabase built-in sender limited to 3/hour — fine for testing, needs Resend webhook for production | High |
+| Identity not editable | Users who completed onboarding can't edit their identity fields without creating a new account | Medium |
 | No agent editing | Agents created at onboarding can't be renamed, edited, or deleted from the UI | Medium |
-| Governance is always on | No way to pause SAGE/EMBER per agent from the dashboard | Low |
+| Governance always on | No way to pause SAGE/EMBER globally — only per chat session via toggle | Low |
 | No conversation history | Chat history not loaded on page refresh — starts fresh each session | Medium |
 | No analytics | No tracking of conversation volume, response quality, or pipeline stats | Low |
 | No team access | One account per business — no way to invite teammates | Low |
-| Prompts.ts out of sync | `lib/prompts.ts` in the repo still has the old single-argument `buildSystemPrompt` — needs updating to match the latest version used in `lib/agents.ts` | High |
 
 ---
 
@@ -242,10 +242,10 @@ Dynamically created per business based on onboarding goals. Currently: Support, 
 ## Roadmap — What Comes Next
 
 ### Phase 2 — Foundation Polish
-- Edit identity / profile page (mission, values, brand voice)
-- Edit and manage individual agents
+- Edit identity / profile page (mission, values, brand voice) without needing a new account
+- Edit and manage individual agents (rename, reprompt, pause, delete)
 - Conversation history persistence across sessions
-- Verified sending domain for email (custom domain via Resend or Postmark)
+- Resend email webhook — bypasses Supabase SMTP bug, enables unlimited sending
 
 ### Phase 3 — Governance Depth
 - NOVA, VERA, ORYN activated as real reviewing agents
@@ -277,7 +277,7 @@ Dynamically created per business based on onboarding goals. Currently: Support, 
 ### To restore a clean version
 1. All code lives at github.com/[your-username]/agentforge
 2. Environment variables are in Vercel project settings
-3. Database schema is in `supabase-schema.sql` plus the identity migration:
+3. Run `supabase-schema.sql` in Supabase SQL Editor, then run the identity migration:
 ```sql
 alter table public.profiles
   add column if not exists mission text,
@@ -289,15 +289,47 @@ alter table public.profiles
   add column if not exists brand_keywords text[],
   add column if not exists brand_avoid text[];
 ```
+4. Set Supabase Site URL and redirect URL to your Vercel deployment URL
+5. Disable custom SMTP in Supabase unless Resend webhook is configured
+
+### To clear all users for fresh testing
+Run in Supabase SQL Editor — cascade deletes all profiles, agents, conversations, messages:
+```sql
+delete from auth.users;
+```
 
 ### To hand to a developer
-Give them: this document, the GitHub repo link, and the Vercel + Supabase + Anthropic + Resend credentials. Everything else they need is in the README and this document.
+Give them: this document, the GitHub repo link, and the Vercel + Supabase + Anthropic credentials. Everything else they need is in this document.
 
 ### To start a new feature
 1. Create a new branch in GitHub
 2. Make changes via the web editor or locally
 3. Vercel auto-deploys preview URLs for every branch
 4. Merge to main when ready — auto-deploys to production
+
+---
+
+## Changelog
+
+### v1.1 — March 2026
+- **Fixed:** Governance pipeline deadlock — SAGE/EMBER prompts rebuilt inline in `chat/route.ts` using live profile data, with lenient default behaviour. Previously all responses hit the human queue deadlock.
+- **Fixed:** Next.js security vulnerability CVE-2025-66478 — upgraded from 15.0.0 → 15.3.3
+- **Fixed:** TypeScript errors in `middleware.ts` and `lib/supabase/server.ts` — explicit cookie type annotations added
+- **Fixed:** Agent UUID error — removed hardcoded `id` field from agent payloads, Supabase now auto-generates UUIDs
+- **Fixed:** Email — switched from Resend SMTP (hitting Supabase `unexpected_failure` bug) to Supabase built-in sender for stability
+- **Added:** Business identity step to onboarding (mission, vision, products, values, ethics, brand voice, keywords)
+- **Added:** Identity fields to `profiles` table via migration
+- **Added:** SAGE and EMBER prompts now personalised using each business's actual ethics commitments, values, and brand voice
+- **Added:** Org Chart tab to dashboard with full hierarchy and clickable nodes
+- **Added:** Governance tab with SAGE/EMBER policy cards and pipeline flow diagram
+- **Added:** GOVERNANCE ON/OFF toggle per chat session
+- **Added:** Pipeline badge under each assistant message showing SAGE/EMBER status and attempt count
+- **Improved:** All small/dark UI text bumped up in size and lightened for readability across onboarding and dashboard
+- **Improved:** Onboarding step labels added under progress pips
+
+### v1.0 — February 2026
+- Initial MVP deployed
+- Auth, onboarding (4 steps), agent creation, live chat, governance pipeline, dashboard
 
 ---
 
@@ -311,7 +343,8 @@ This entire product was designed and built in a single Claude session, starting 
 - **Built** governance pipeline (SAGE/EMBER) as a real working feature, not just visual
 - **Added** business identity to onboarding so governance is personalised, not generic
 - **Deployed** entirely via GitHub web editor — no local development environment needed
+- **Debugged** live in production — TypeScript errors, UUID bugs, CVE patches, SMTP failures, governance deadlocks all resolved iteratively
 
 ---
 
-*AgentForge Baseline v1.0 — February 2026*
+*AgentForge Baseline v1.1 — March 2026*
